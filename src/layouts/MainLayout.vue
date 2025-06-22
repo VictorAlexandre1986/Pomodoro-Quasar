@@ -12,10 +12,11 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          PomoTime          
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div> version 0.0.1</div>
+        <q-toggle v-model="isDark" checked-icon="dark_mode" unchecked-icon="light_mode" color="primary" :label="isDark ? 'Dark' : 'Light'" class="q-ml-md" />
       </q-toolbar>
     </q-header>
 
@@ -28,14 +29,36 @@
         <q-item-label
           header
         >
-          Essential Links
+          Menu
         </q-item-label>
+        <q-item clickable v-ripple to="/">
+          <q-item-section avatar>
+            <q-icon name="home" />
+          </q-item-section>
+          <q-item-section>
+            Início
+          </q-item-section>
+        </q-item>
+        
+        <q-item clickable v-ripple to="/configuracoes">
+          <q-item-section avatar>
+            <q-icon name="settings" />
+          </q-item-section>
+          <q-item-section>
+            Configurações
+          </q-item-section>
+        </q-item>
 
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <q-item clickable v-ripple to="/relatorio">
+          <q-item-section avatar>
+            <q-icon name="bar_chart" />
+          </q-item-section>
+          <q-item-section>
+            Relatório
+          </q-item-section>
+        </q-item>
+
+  
       </q-list>
     </q-drawer>
 
@@ -46,7 +69,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import EssentialLink from 'components/EssentialLink.vue'
 
 defineOptions({
@@ -99,6 +123,19 @@ const linksList = [
 ]
 
 const leftDrawerOpen = ref(false)
+const $q = useQuasar()
+const isDark = ref($q.dark.isActive)
+
+watch(isDark, val => {
+  $q.dark.set(val)
+  localStorage.setItem('theme', val ? 'dark' : 'light')
+})
+
+// Carregar tema salvo
+if (localStorage.getItem('theme')) {
+  $q.dark.set(localStorage.getItem('theme') === 'dark')
+  isDark.value = $q.dark.isActive
+}
 
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value

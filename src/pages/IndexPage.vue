@@ -21,10 +21,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onActivated } from 'vue';
 import { useQuasar } from 'quasar';
 
-const time = ref(25 * 60); // 25 minutos de trabalho
+const getConfig = () => {
+  const config = JSON.parse(localStorage.getItem('config-pomotime') || '{}')
+  return {
+    tempoTrabalho: Number(config.tempoTrabalho) || 25,
+    tempoDescanso: Number(config.tempoDescanso) || 5
+  }
+}
+
+const time = ref(getConfig().tempoTrabalho * 60);
 const isBreak = ref(false);
 const isRunning = ref(false);
 let timer = null;
@@ -36,6 +44,16 @@ onMounted(() => {
   // Checa se o audio está carregado corretamente
   if (!audio.value) {
     console.error('Áudio não está carregado corretamente!');
+  }
+  // Atualiza o tempo inicial com base nas configurações
+  time.value = getConfig().tempoTrabalho * 60;
+});
+
+onActivated(() => {
+  // Atualiza o tempo inicial ao voltar para a página
+  if (!isRunning.value) {
+    const config = getConfig();
+    time.value = isBreak.value ? config.tempoDescanso * 60 : config.tempoTrabalho * 60;
   }
 });
 
@@ -59,7 +77,8 @@ const startTimer = () => {
         playSound(); // Toca o som quando o tempo terminar
 
         isBreak.value = !isBreak.value;
-        time.value = isBreak.value ? 5 * 60 : 25 * 60; // 5 minutos de intervalo ou 25 minutos de trabalho
+        const config = getConfig();
+        time.value = isBreak.value ? config.tempoDescanso * 60 : config.tempoTrabalho * 60;
       }
     }, 1000);
   }
@@ -74,7 +93,7 @@ const resetTimer = () => {
   isRunning.value = false;
   clearInterval(timer);
   isBreak.value = false;
-  time.value = 25 * 60; // Reset para 25 minutos
+  time.value = getConfig().tempoTrabalho * 60; // Reset para o tempo configurado
 };
 
 const formatTime = (seconds) => {
